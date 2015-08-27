@@ -26,8 +26,8 @@
 DEFINE("WIDTH", 660);
 DEFINE("HEIGHT", 335);
 DEFINE("OFFSET", 15); // The bottom part of drawing that will be visible to the next drawer.
-//DEFINE("ROUTEPATH", "http://localhost/gronster"); 
-DEFINE("ROUTEPATH", "http://gronster.adamkiryk.com");
+DEFINE("ROUTEPATH", "http://localhost/gronster"); 
+// DEFINE("ROUTEPATH", "http://gronster.adamkiryk.com");
 /**
  * Cache Engine Configuration
  * Default settings provided below

@@ -1,1 +1,4 @@
-/app/tmp
+/app/tmp/*
+/app/webroot/img/drawings/
+/app/webroot/img/thumbs/
+/app/webroot/img/merged/

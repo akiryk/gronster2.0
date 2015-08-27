@@ -46,7 +46,7 @@
 		});
 		
 		// REVEAL MODAL **
-		$('.intro').click(function(e) {
+		$('#more-help-button').click(function(e) {
           	e.preventDefault();
           	$('#start-help').fadeOut('fast', function() { $(this).remove(); });
 		  	$('#intro-help-modal').reveal();

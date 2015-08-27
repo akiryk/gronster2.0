@@ -829,6 +829,7 @@ h2.welcome {
 }
 
 .welcome-image img{
+	box-shadow: 0 4px 10px rgba(0,0,0,0.4); 
 	margin-bottom: 20px;
 	max-width: 170px;
 }
@@ -1209,7 +1210,11 @@ div.slider-nav span.left {
 .info-container.error {
 	/*background-color: #c10b63;  magenta 
 	background-image: none;*/
-}  
+} 
+
+.message {
+	display: none;
+} 
 
 /* REVIEW ALL */
 #review-all{
