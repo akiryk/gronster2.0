@@ -21,9 +21,4 @@ class DATABASE_CONFIG {
 		'database' => 'gronster',
 	);
 
-	// 	DEFINE("DB_SERVER", "mysql.storyengine.adamkiryk.com");
-	// DEFINE("DB_USER", "akiryk");
-	// DEFINE("DB_PASS", "1Forg3table");
-	// DEFINE("DB_NAME", "ak_storyengine");
-
 }

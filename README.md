@@ -7,4 +7,4 @@ The app stores the separate drawings in a mysql database and combines them into 
 
 ###Update app on gronster.adamkiryk.com
 1. Redefine ROUTEPATH on line 29 in bootstrap.php from 'localhost' to 'gronster.adamkiryk.com'
-2. Update database info in app/Config/database.php
+2. Update database info in app/Config/database.php. Host should be mysql.gronster.adamkiryk.com and update password/username.
