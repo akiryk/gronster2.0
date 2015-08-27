@@ -2035,3 +2035,6 @@
 2015-08-27 16:59:30 Error: [MissingControllerException] Controller class ImgController could not be found.
 #0 /Applications/MAMP/htdocs/gronster/app/webroot/index.php(92): Dispatcher->dispatch(Object(CakeRequest), Object(CakeResponse))
 #1 {main}
+2015-08-27 18:35:33 Error: [MissingControllerException] Controller class ImgController could not be found.
+#0 /Applications/MAMP/htdocs/gronster/app/webroot/index.php(92): Dispatcher->dispatch(Object(CakeRequest), Object(CakeResponse))
+#1 {main}
