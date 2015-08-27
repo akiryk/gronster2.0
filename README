@@ -1,0 +1,2 @@
+#Update app on gronster.adamkiryk.com
+Redefine ROUTEPATH in bootstrap.php from 'localhost' to 'gronster.adamkiryk.com'

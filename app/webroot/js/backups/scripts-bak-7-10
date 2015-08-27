@@ -1,0 +1,563 @@
+
+      
+/* ********************************************************
+ * ********************* CANVAS CONTROLS ******************
+/* ******************************************************** */
+
+var filepath; // = "http://localhost/cake";//"http://gronster.adamkiryk.com"; 
+var sketcher;
+var width;
+var height;
+var offset;
+
+function init(path, w, h, o){
+	if (isCanvasSupported()){
+		filepath = path;
+		width = w;
+		height = h;
+		offset = o;
+		initializeBrushes();
+	} else {
+		// canvas isn't supported so
+		// do something to let user know what's up.
+	}
+}	// end initCanvas()
+
+function initializeBrushes(){
+	var self = this;
+	var total = 1;
+	var files = ['magenta_medium.png', 'brushes.png', 'blue_medium.png', 'white_medium.png'];
+	var brushes = new Array();
+	var brushpath = filepath + '/app/webroot/img/brushes/';
+	for (var i=0; i<files.length; i++){
+		brushes[i] = new Image();
+		brushes[i].onload = function(){ resourceLoaded(); }
+		brushes[i].src = brushpath + files[i];
+	}
+  
+  function resourceLoaded() {
+  	total++;
+  	if (total == brushes.length){
+			self.initializeSketcher(brushes);
+		}
+  }
+  		
+}
+
+function initializeSketcher(brushes){
+	sketcher = new Sketcher( "guide", "drawing", "top", brushes, filepath );
+	sketcher.setParams(width, height, offset);
+	sketcher.makeGuides();
+	initCanvas();
+}
+
+// check if browser supports the canvas element
+function isCanvasSupported(){
+	var elem = document.createElement('canvas');
+	return !!(elem.getContext && elem.getContext('2d'));
+}
+
+function initCanvas(){
+	/* ********************************************************
+	 * ********************* AJAX FORM CONTROLS ***************
+	/* ******************************************************** */
+	// This flag will prevent multiple comment submits: 
+	var working = false;
+
+	/**
+	 * Override the Drawing submit button click event on drawing/add page.
+	 * Works with handleData() and ajaxSubmit() functions.
+	 *
+	 * @param bool $working sets whether submit is underway.
+	 */
+	$('#GronsterAddForm').submit(function(e){
+		doSubmit($(this), e, filepath + "/gronsters/add"); 
+	});
+	
+	/**
+	 * Override the Panel submit button click event on drawing/add page.
+	 * Works with formReady(), handleData() and ajaxSubmit() functions.
+	 *
+	 * @param bool $working sets whether submit is underway.
+	 */
+	$('#PanelAddForm').submit(function(e){	
+	  doSubmit($(this), e, filepath + "/panels/add");
+  });
+
+	$('#color-button').click(function() {
+		if( $(this).hasClass('open')) {
+			$(this).removeClass('open');
+		} else {
+			$(this).addClass('open');
+		}
+		$('#colors').toggle();
+		return false;
+	});
+
+	//$('.select-color').css('background', sketcher.colors['purple']);
+
+	$('ul#colors li').click(function() {
+		var colorName = $(this).attr('class');
+		setSelectColor(sketcher.getColor(colorName));
+		sketcher.changeColor(colorName);
+		$('#color-button').trigger('click');
+	});
+
+	function setSelectColor(color){
+		$('.select-color').css('background', color );
+	}
+
+	setSelectColor(sketcher.getColor('purple'));
+
+	/*
+	* Handle the submit function for both gronster add form and panel add form
+	* @var e: event
+	* @var submit_url: the action to handle submit. 
+	* @var this: the form submit element.
+	*/
+	function doSubmit(self, e, submit_url){
+		if (!sketcher.isSaveSafe()){
+			e.preventDefault();
+	  	return false;
+	  } else if (formReady(e)) {
+  		// get serialized formdata that includes image data
+			var formdata = handleData(self);
+			ajaxSubmit(formdata, submit_url);
+		} else {
+			return false;
+	  } 
+	}
+	
+	/**
+	 * Override the submit button click event on drawing/add page 
+	 * And make sure form isn't already being submitted.
+	 *
+	 * @return bool telling is form ready or not.
+	 */
+	function formReady(e){
+		// stop form from doing its normal behavior
+		e.preventDefault(); 
+			
+		// Make sure a submit isn't already underway.
+		if(working) return false;
+		working = true;
+		$('#submit').val('Working..');
+		$('span.error').remove();
+		return true;
+	}
+	
+	/**
+	 * Gets data from the form and from the canvas image.
+	 * Turns it into something that can be sent to the php form handler.
+	 *
+	 * @return string formdata, a serialized array of form and image data.
+	 */
+	function handleData(form){
+ 		// Return the serialized form plus the encoded image data.
+  	var formdata = form.serialize() + "&img=" + sketcher.toString();
+  	return formdata;
+	}
+	
+	/**
+	 * Override the submit button click event on drawing/add page.
+	 * Works with handleData() and ajaxSubmit() functions.
+	 *
+	 * @param bool $working sets whether submit is underway.
+	 */
+	function ajaxSubmit(formdata, submiturl){
+		//alert("form: " + formdata);
+		$.ajax({
+		  type: "POST", 
+		  url: submiturl,
+		  data: formdata,
+		  dataType: "json",
+		  success: function(message) {
+		  	working = false;
+	    	if (message.status) {
+	    		// message object contains three possible properties: status, gronster_id, error_msg.
+	    		var id = message.gronster_id;
+	    		if (message.done) {
+	    			// display the finished drawing
+	    			window.location.replace(filepath + "/gronsters/view/" + id);
+	    		} else {
+	    			// let user share it
+	    			window.location.replace(filepath + "/gronsters/share/" + id);
+	    		}
+	    		
+	    	} else {
+				  $.each(message.errors,function(k,v){
+					  $('label[for='+k+']').append('<span class="error">'+v+'</span>');
+				  });
+			  }
+		  },
+		  error: function(jqXHR, textStatus, errorThrown) {
+		  	alert("failure, error " + jqXHR);
+		  }
+	  });
+	};
+}
+		
+/*
+* Hide cursor in chrome when dragging 
+*/
+function disableSelect(){
+	document.onselectstart = function(){ return false; }
+}
+function enableSelect(){
+	document.onselectstart = function(){ return true; }
+}
+
+/* ********************************************************
+* *********************     SKETCHER        ***************
+/* ******************************************************** 
+*
+* Sketcher class
+*
+* Makes marks with a brush image or else falls back to canvas lines
+*/
+
+function Sketcher( guideID, drawingID, topID, brushArray, filepath) {
+	// Set width and height and offset by php.
+	this.width;
+	this.height;
+	this.offset;
+
+	this.colors = {};
+	this.colors['magenta'] = '#d5097c';
+	this.colors['purple'] = '#2413c6';
+	this.colors['blue'] = '#007fc8';
+	this.colors['white'] = '#eee';
+	this.colors['green'] = '#4aa501';
+	this.colors['orange'] = '#df8300';
+	this.colors['black'] = '#000000';
+
+	this.currentColor = this.colors['purple'];
+	
+	// Drawing isn't safe to save until drawer has included something below dotted line
+	this.saveSafe = true; // Will change to false if there is a dotted line.
+
+	// Track dragging so we know whether to draw a line
+	this.dragging = false;
+
+	// Check for brush image and use it if available
+	this.renderFunction = (brushArray == null || brushArray == undefined) ? this.updateCanvasByLine : this.updateCanvasByBrush;
+	//this.renderFunction = this.updateCanvasByLine;
+	this.brushArray = brushArray;
+	this.brush = this.brushArray[1]; // purple
+
+	// Check for touch
+	// this.touchSupported = Modernizr.touch;
+	// temporarily disable touch
+	this.touchSupported = false;
+
+	// Check if we need to load a guide image from first or second drawer {
+	this.filepath = filepath;
+
+	if(typeof topimage != 'undefined'){
+  	var imageObj = new Image(); 
+  	var self = this;
+
+  	imageObj.src = this.filepath + topimage;
+		imageObj.onload = function(){
+			self.drawPrevImage(this); // self = the sketcher object and this = the imageObj
+		}
+  }
+
+	/* 
+	* There are three canvases: 
+	* Top canvas is for the cursor
+	* Middle is called drawing and is the context where we make and save the drawing
+	* Bottom is called guide and is where we show dotted line guide */
+	this.topID = topID;
+	this.top_canvas = $("#"+topID);
+	this.top_canvas_context = this.top_canvas.get(0).getContext("2d");	
+
+	this.drawingID = drawingID;
+	this.drawing = $('#'+drawingID);
+	this.context = this.drawing.get(0).getContext("2d");
+
+	// Dashed guideline
+	this.guideID = guideID;
+	this.guide = $('#'+guideID);
+	this.guide_context = this.guide.get(0).getContext("2d");
+
+  /* Backup styles in case there isn't a brush */
+	this.context.strokeStyle = "#000000";
+	this.context.lineWidth = 3;
+	this.lastMousePoint = {x:0, y:0};
+    
+	if (this.touchSupported) {
+		this.mouseDownEvent = "touchstart";
+		this.mouseMoveEvent = "touchmove";
+		this.mouseUpEvent = "touchend";
+	}
+	else {
+		this.mouseDownEvent = "mousedown";
+		this.mouseMoveEvent = "mousemove";
+		this.mouseUpEvent = "mouseup";
+	}
+	// only bind to what is necessary
+	this.top_canvas.bind( this.mouseDownEvent, this.onCanvasMouseDown() );
+	this.top_canvas.bind( this.mouseMoveEvent, this.onCanvasMouseMove() );
+	this.top_canvas.bind( "mouseleave", this.onCanvasMouseLeave() );
+}
+
+Sketcher.prototype.getColor = function(c) {
+	return this.colors[c];
+}
+
+Sketcher.prototype.makeGuides = function(){
+	// If this is first or second panel,
+  // draw a dotted baseline to indicate section that will be passed to next drawer.
+  if(typeof total != 'undefined' && total != 2){
+  	this.saveSafe = false;
+  	this.drawBaseline();
+  }
+}
+
+Sketcher.prototype.changeColor = function(colorName){
+	// draw with new color
+	this.currentColor = this.colors[colorName];
+	var i;
+	switch(colorName){
+		case "magenta": 
+			i=0;
+			break;
+		case "purple": i=1;
+			break;
+		case "blue": i=2;
+			break;
+		case "white": i=3;
+			break;
+
+		default: i=0;
+	}
+	this.brush = this.brushArray[i];
+}
+
+Sketcher.prototype.setParams = function(w,h,o){
+	this.setWidth(w);
+	this.setHeight(h);
+	this.setOffset(o);
+}
+Sketcher.prototype.setWidth = function(x){
+	this.width = x;
+}
+
+Sketcher.prototype.setHeight = function(x){
+	this.height = x;
+}
+Sketcher.prototype.setOffset = function(x){
+	this.offset = x;
+}
+
+Sketcher.prototype.getContext = function(){
+	return this.context;
+}
+
+Sketcher.prototype.onCanvasMouseDown = function () {
+	var self = this;
+	return function(event) {
+		disableSelect();
+		self.dragging = true;
+		self.mouseUpHandler = self.onCanvasMouseUp();
+		$(document).bind( self.mouseUpEvent, self.mouseUpHandler );
+		self.updateMousePosition( event );
+		self.renderFunction( event ); // i.e. updateCanvasByBrush() or updateCanvasByLine()
+	}
+}
+
+Sketcher.prototype.onCanvasMouseMove = function () {
+	var self = this;
+	return function(event) {
+		if (self.dragging){
+			self.renderFunction( event );
+	    event.preventDefault();
+	    self.drawCursor();
+	    if (self.lastMousePoint.y > self.height - self.offset) {
+	    	self.saveSafe = true;
+	    }
+	    return false;
+	  } else {
+	  	self.updateMousePosition( event );
+	  	self.drawCursor();
+	  }
+	  
+	}
+}
+
+Sketcher.prototype.onCanvasMouseUp = function (event) {
+	var self = this;
+	return function(event) {
+		enableSelect();
+		self.dragging = false;
+		$(document).unbind( self.mouseUpEvent, self.mouseUpHandler );
+		
+		self.mouseMoveHandler = null;
+		self.mouseUpHandler = null;
+	}
+}
+
+/*
+* Remove cursor when mouse is off the canvase
+*/
+Sketcher.prototype.onCanvasMouseLeave = function (event) {
+	var self = this;
+	return function(event) {
+		self.clear(self.top_canvas_context);
+	}
+}
+
+Sketcher.prototype.updateMousePosition = function (event) {
+ 	var target;
+	if (this.touchSupported) {
+		target = event.originalEvent.touches[0]
+	}
+	else {
+		target = event;
+	}
+	var offset = this.top_canvas.offset();
+	this.lastMousePoint.x = target.pageX - offset.left;
+	this.lastMousePoint.y = target.pageY - offset.top;
+
+}
+
+Sketcher.prototype.updateCanvasByLine = function (event) {
+
+	this.context.beginPath();
+	this.context.lineWidth = 8;
+	this.context.lineCap = 'round';
+	this.context.moveTo( this.lastMousePoint.x, this.lastMousePoint.y );
+	this.updateMousePosition( event );
+	this.context.lineTo( this.lastMousePoint.x, this.lastMousePoint.y );
+	this.context.stroke();
+}
+
+Sketcher.prototype.updateCanvasByBrush = function (event) {
+	var halfBrushW = this.brush.width/2;
+	var halfBrushH = this.brush.height/2;
+	
+	var start = { x:this.lastMousePoint.x, y: this.lastMousePoint.y };
+	this.updateMousePosition( event );
+	var end = { x:this.lastMousePoint.x, y: this.lastMousePoint.y };
+	
+	var distance = parseInt( Trig.distanceBetween2Points( start, end ) );
+	var angle = Trig.angleBetween2Points( start, end );
+
+	var x,y;
+	var brushX = 4*9; // green, which is 5th color
+	var brushY = 6;
+	this.brushSize = 9;
+	var sourceWidth = 63;
+	var sourceHeight = 30;
+	var xOffset = sourceWidth/2 - this.brushSize/2; // Or, half of the source image width - half of the brushsize
+	var yOffset = sourceHeight/2 - this.brushSize/2;
+	for ( var z=0; (z<=distance || z==0); z++ )
+	{
+		x = start.x + (Math.sin(angle) * z) - halfBrushW;
+		y = start.y + (Math.cos(angle) * z) - halfBrushH;
+		//context.drawImage(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight);
+		this.context.drawImage(this.brush, brushX, brushY, this.brushSize, this.brushSize, x+xOffset, y+yOffset, this.brushSize, this.brushSize);
+		//this.context.drawImage(this.brush, 0, 0, 6, 6, x, y, 6, 6);
+		//this.context.drawImage(this.brush, x,y);
+	}
+}
+
+Sketcher.prototype.drawCursor = function(){
+	this.clear(this.top_canvas_context);
+	this.top_canvas_context.beginPath();
+	this.top_canvas_context.fillStyle = this.currentColor; //selectColor;
+	this.top_canvas_context.arc(this.lastMousePoint.x, this.lastMousePoint.y, 4, 0 , 2 * Math.PI, false);
+	this.top_canvas_context.fill();
+}
+
+Sketcher.prototype.toString = function () {
+
+	var dataString = this.drawing.get(0).toDataURL("image/png");
+	var index = dataString.indexOf( "," )+1;
+	dataString = dataString.substring( index );
+	
+	return dataString;
+}
+
+Sketcher.prototype.toDataURL = function () {
+
+	var dataString = this.drawing.get(0).toDataURL("image/png");
+	return dataString;
+}
+
+Sketcher.prototype.clear = function (context) {
+	context.clearRect(0,0,this.width,this.height);
+}
+
+Sketcher.prototype.isSaveSafe = function(){
+	return this.saveSafe;
+}
+
+/*
+* Draw the bottom part of last image on canvas.
+* Enables drawer to connect his/her drawing with previous drawing.
+*
+* @param imageObj is the previous drawer's image.
+*/
+Sketcher.prototype.drawPrevImage = function (imageObj) {
+	 // draw cropped image
+	var sourceX = 0;
+	var sourceY = this.height - this.offset; 
+	var sourceWidth = this.width; 
+	var sourceHeight = this.offset; 
+	var destWidth = sourceWidth;
+	var destHeight = sourceHeight;
+	var destX = 0;
+	var destY = 0;
+	this.context.drawImage(imageObj, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);   
+}
+
+/*
+* Draw a dotted baseline to show what part of drawing will be passed
+* to the next drawer.
+*/
+Sketcher.prototype.drawBaseline = function() {
+	var ctx = this.guide_context;
+	var x = 0;
+	var dashLength = 2;
+	var count = this.width/(2*dashLength);
+	this.drawDottedLine(dashLength, count, ctx);
+}
+
+/*
+* Draw a dotted line
+* Make a series of rectangles with space to simulate a dotted line
+*/
+Sketcher.prototype.drawDottedLine = function(dashLength, count, ctx){
+	for (var i=0; i<count; i++){
+		x = i* dashLength * 2; // if dashlength = 2, then we get: 0, 4, 8, 12, 16...
+		ctx.rect(x, this.height-this.offset, dashLength, dashLength);
+		ctx.fillStyle = '#a3a7e3';
+		ctx.fill(); 
+	}
+}
+
+/* 
+* Trig class
+*
+*/
+var Trig = {
+	distanceBetween2Points: function ( point1, point2 ) {
+		
+		var dx = point2.x - point1.x;
+		var dy = point2.y - point1.y;
+		return Math.sqrt( Math.pow( dx, 2 ) + Math.pow( dy, 2 ) );	
+	},
+	
+	angleBetween2Points: function ( point1, point2 ) {
+	
+		var dx = point2.x - point1.x;
+		var dy = point2.y - point1.y;	
+		return Math.atan2( dx, dy );
+	}
+}
+
+
+
+

@@ -1,0 +1,38 @@
+<div class="button-container first">
+		<div id="color-button" class="menu-button">
+			<div class="select-color"></div>
+		</div>
+			
+		<ul id="colors">
+				<li class="magenta">Magenta</li>
+				<li class="purple">Purple</li>
+				<li class="blue">Cyan</li>
+				<li class="green">Green</li>
+				<li class="orange">Orange</li>
+				<li class="black">Black</li>
+				<li class="white">White</li>
+		</ul>
+	</div>
+
+	<div class="button-container">
+		<div id="size-button" class="menu-button">
+			<div class="select-size small"></div>
+		</div>
+
+		<ul id="sizes">
+			<li class="xsmall">xSmall</li>
+			<li class="small">Small</li>
+			<li class="medium">Medium</li>
+			<li class="large">Large</li>
+			<li class="xlarge">Xlarge</li>
+		</ul>
+	</div>
+
+
+canvases element
+	<div id="canvases">
+	  <div id="welcome"></div>
+	  <canvas id="drawing" width=<?php echo WIDTH ?> height=<?php echo HEIGHT ?>></canvas>
+	  <canvas id="guide" width=<?php echo WIDTH ?> height=<?php echo HEIGHT ?>></canvas>
+	  <canvas id="top" width=<?php echo WIDTH ?> height=<?php echo HEIGHT ?>></canvas>
+	</div>
