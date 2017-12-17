@@ -1,18 +1,3 @@
-gronster 2.0
-========
-Runs on php 5.6.
-
-A drawing game built with cake php and javascript.
-The idea of the game is for three participants to each draw one portion of a creature -- head, body and legs.
-The app stores the separate drawings in a mysql database and combines them into one png image once all are finished.
-
-###Update app on gronster.adamkiryk.com
-1. Redefine ROUTEPATH on line 29 in bootstrap.php for local or remote host. That is, 'localhost' or 'gronster.adamkiryk.com'. `DEFINE("ROUTEPATH", "http://gronster.adamkiryk.com");`
-2. If no database, create one (see 'Create Database' below).
-3. Update database info in app/Config/database.php. Host should be localhost or remote host, e.g. mysql.gronster.adamkiryk.com. Also update password/username.
-
-### Create Database
-```
 CREATE DATABASE `gronster` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 
 USE `gronster`;
@@ -71,4 +56,3 @@ CREATE TABLE `users` (
   `modified` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=79 ;
-```

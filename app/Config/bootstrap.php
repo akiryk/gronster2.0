@@ -2,7 +2,7 @@
 /**
  * This file is loaded automatically by the app/webroot/index.php file after core.php
  *
- * This file should load/create any application wide configuration settings, such as 
+ * This file should load/create any application wide configuration settings, such as
  * Caching, Logging, loading additional configuration files.
  *
  * You should also use this file to include any files that provide global functions/constants
@@ -26,8 +26,8 @@
 DEFINE("WIDTH", 660);
 DEFINE("HEIGHT", 335);
 DEFINE("OFFSET", 15); // The bottom part of drawing that will be visible to the next drawer.
-DEFINE("ROUTEPATH", "http://localhost/gronster"); 
-// DEFINE("ROUTEPATH", "http://gronster.adamkiryk.com");
+DEFINE("ROUTEPATH", "http://localhost:8888/gronster2.0/");
+
 /**
  * Cache Engine Configuration
  * Default settings provided below
